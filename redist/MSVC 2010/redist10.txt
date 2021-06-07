@@ -1,0 +1,1 @@
+This directory contains MSVCP100.dll and MSVCR100.dll. Copy both these files to obj-i686-pc-mingw32\dist\bin.
