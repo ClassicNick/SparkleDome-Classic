@@ -1,0 +1,1 @@
+This directory contains MSVCP90.dll, and MSVCR90.dll. Copy both these files to the obj-i686-pc-mingw32/dist/bin directory.
