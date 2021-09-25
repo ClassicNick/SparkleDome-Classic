@@ -3,8 +3,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-MOZ_APP_BASENAME=Palemoon
-MOZ_APP_VENDOR=Moonchild
+MOZ_APP_BASENAME=SparkleDome-Classic
+MOZ_APP_VENDOR=ClassicNick
 MOZ_UPDATER=1
 MOZ_PHOENIX=1
 
