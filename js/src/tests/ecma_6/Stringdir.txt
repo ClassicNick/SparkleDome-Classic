@@ -1,0 +1,4 @@
+As part of the String.fromCodePoint, and String.codePointAt implementations, 
+there's supposed to be a directory named String here in the ecma_6 directory. 
+Becuase GitHub web does not allow me to do that, the file will be placed here
+and I'll hope for the best.
