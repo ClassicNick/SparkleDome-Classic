@@ -3557,6 +3557,7 @@ static const JSFunctionSpec string_methods[] = {
     JS_FN("toUpperCase",       str_toUpperCase,       0,JSFUN_GENERIC_NATIVE),
     JS_FN("charAt",            js_str_charAt,         1,JSFUN_GENERIC_NATIVE),
     JS_FN("charCodeAt",        js_str_charCodeAt,     1,JSFUN_GENERIC_NATIVE),
+	{"codePointAt",			   {NULL, NULL},		  1,0, "String_codePointAt"},
     JS_FN("includes",          str_includes,          1,JSFUN_GENERIC_NATIVE),
     JS_FN("contains",          str_contains,          1,JSFUN_GENERIC_NATIVE),
     JS_FN("indexOf",           str_indexOf,           1,JSFUN_GENERIC_NATIVE),
@@ -3679,6 +3680,7 @@ static const JSFunctionSpec string_static_methods[] = {
 #if ENABLE_INTL_API
          {"localeCompare",     {NULL, NULL},          2,0, "String_static_localeCompare"},
 #endif
+		 {"fromCodePoint",	   {NULL, NULL},		  0,0, "String_static_fromCodePoint"},
     JS_FS_END
 };
 

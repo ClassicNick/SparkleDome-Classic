@@ -2864,6 +2864,7 @@ static const JSFunctionSpec array_methods[] = {
     /* ES6 additions */
          {"find",               {NULL, NULL},       1,0, "ArrayFind"},
          {"findIndex",          {NULL, NULL},       1,0, "ArrayFindIndex"},
+		 {"fill",				{NULL, NULL},       1,0, "ArrayFill"},
 
     JS_FN("iterator",           JS_ArrayIterator,   0,0),
     JS_FS_END
