@@ -466,3 +466,40 @@ function ArrayFindIndex(predicate/*, thisArg*/) {
     /* Step 10. */
     return -1;
 }
+
+// ES6 draft 2013-11-08 22.1.3.6
+function ArrayFill(value/*, start = 0, end = this.length*/) {
+    // Steps 1-2.
+    var O = ToObject(this);
+
+    // Steps 3-5.
+    var len = ToInteger(O.length);
+
+    // Steps 6-7.
+    var relativeStart = arguments.length > 1 && arguments[1] !== undefined
+                        ? ToInteger(arguments[1])
+                        : 0;
+
+    // Step 8.
+    var k = relativeStart < 0
+            ? std_Math_max(len + relativeStart, 0)
+            : std_Math_min(relativeStart, len);
+
+    // Steps 9-10.
+    var relativeEnd = arguments.length > 2 && arguments[2] !== undefined
+                      ? ToInteger(arguments[2])
+                      : len;
+
+    // Step 11.
+    var final = relativeEnd < 0
+                ? std_Math_max(len + relativeEnd, 0)
+                : std_Math_min(relativeEnd, len);
+
+    // Step 12.
+    for (; k < final; k++) {
+        O[k] = value;
+    }
+
+    // Step 13.
+    return O;
+}
