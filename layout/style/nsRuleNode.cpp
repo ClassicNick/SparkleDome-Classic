@@ -4990,13 +4990,11 @@ nsRuleNode::ComputeDisplayData(void* aStartStruct,
               parentDisplay->mDisplay,
               NS_STYLE_DISPLAY_INLINE, 0, 0, 0, 0);
               
-/*  // mix-blend-mode: enum, inherit, initial
+  // mix-blend-mode: enum, inherit, initial
   SetDiscrete(*aRuleData->ValueForMixBlendMode(), display->mMixBlendMode,
-              canStoreInRuleTree,
-              SETDSC_ENUMERATED | SETDSC_UNSET_INITIAL,
+              canStoreInRuleTree, SETDSC_ENUMERATED,
               parentDisplay->mMixBlendMode, NS_STYLE_BLEND_NORMAL,
-              0, 0, 0, 0); 
-*/                
+              0, 0, 0, 0);
   // Backup original display value for calculation of a hypothetical
   // box (CSS2 10.6.4/10.6.5), in addition to getting our style data right later.
   // See nsHTMLReflowState::CalculateHypotheticalBox
