@@ -126,45 +126,6 @@ ContainerRepositionChild(Layer* aChild, Layer* aAfter, Container* aContainer)
   aChild->SetNextSibling(afterNext);
 }
 
-template<class Container>
-static void
-ContainerComputeEffectiveTransforms(const gfx3DMatrix& aTransformToSurface,
-                                    Container* aContainer)
-{
-  // We push groups for container layers if we need to, which always
-  // are aligned in device space, so it doesn't really matter how we snap
-  // containers.
-  gfxMatrix residual;
-  gfx3DMatrix idealTransform = aContainer->GetLocalTransform()*aTransformToSurface;
-  idealTransform.ProjectTo2D();
-
-  if (!idealTransform.CanDraw2D()) {
-    aContainer->mEffectiveTransform = idealTransform;
-    aContainer->ComputeEffectiveTransformsForChildren(gfx3DMatrix());
-    aContainer->ComputeEffectiveTransformForMaskLayer(gfx3DMatrix());
-    aContainer->mUseIntermediateSurface = true;
-    return;
-  }
-
-  aContainer->mEffectiveTransform =
-    aContainer->SnapTransformTranslation(idealTransform, &residual);
-  // We always pass the ideal matrix down to our children, so there is no
-  // need to apply any compensation using the residual from SnapTransformTranslation.
-  aContainer->ComputeEffectiveTransformsForChildren(idealTransform);
-
-  aContainer->ComputeEffectiveTransformForMaskLayer(aTransformToSurface);
-
-  /* If we have a single child, it can just inherit our opacity,
-   * otherwise we need a PushGroup and we need to mark ourselves as using
-   * an intermediate surface so our children don't inherit our opacity
-   * via GetEffectiveOpacity.
-   * Having a mask layer always forces our own push group
-   */
-  aContainer->mUseIntermediateSurface =
-    aContainer->GetMaskLayer() || (aContainer->GetEffectiveOpacity() != 1.0 &&
-                                   aContainer->HasMultipleChildren());
-}
-
 class BasicContainerLayer : public ContainerLayer, public BasicImplData {
   template<class Container>
   friend void ContainerInsertAfter(Layer* aChild, Layer* aAfter, Container* aContainer);
@@ -172,9 +133,6 @@ class BasicContainerLayer : public ContainerLayer, public BasicImplData {
   friend void ContainerRemoveChild(Layer* aChild, Container* aContainer);
   template<class Container>
   friend void ContainerRepositionChild(Layer* aChild, Layer* aAfter, Container* aContainer);
-  template<class Container>
-  friend void ContainerComputeEffectiveTransforms(const gfx3DMatrix& aTransformToSurface,
-                                                  Container* aContainer);
 
 public:
   BasicContainerLayer(BasicLayerManager* aManager) :
@@ -212,10 +170,7 @@ public:
     ContainerRepositionChild(aChild, aAfter, this);
   }
 
-  virtual void ComputeEffectiveTransforms(const gfx3DMatrix& aTransformToSurface)
-  {
-    ContainerComputeEffectiveTransforms(aTransformToSurface, this);
-  }
+  virtual void ComputeEffectiveTransforms(const gfx3DMatrix& aTransformToSurface);
 
   /**
    * Returns true when:

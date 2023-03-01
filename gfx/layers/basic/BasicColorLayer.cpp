@@ -34,7 +34,8 @@ public:
   {
     if (IsHidden())
       return;
-    AutoSetOperator setOperator(aContext, GetOperator());
+    gfxContext::GraphicsOperator mixBlendMode = GetEffectiveMixBlendMode();
+    AutoSetOperator setOptimizedOperator(aContext, mixBlendMode != gfxContext::OPERATOR_OVER ? mixBlendMode : GetOperator());
     PaintColorTo(mColor, GetEffectiveOpacity(), aContext, aMaskLayer);
   }
 

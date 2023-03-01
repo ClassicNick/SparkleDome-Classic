@@ -22,6 +22,50 @@ BasicContainerLayer::~BasicContainerLayer()
   MOZ_COUNT_DTOR(BasicContainerLayer);
 }
 
+void
+BasicContainerLayer::ComputeEffectiveTransforms(const gfx3DMatrix& aTransformToSurface)
+{
+  // We push groups for container layers if we need to, which always
+  // are aligned in device space, so it doesn't really matter how we snap
+  // containers.
+  gfxMatrix residual;
+  gfx3DMatrix idealTransform = GetLocalTransform()*aTransformToSurface;
+  idealTransform.ProjectTo2D();
+
+  if (!idealTransform.CanDraw2D()) {
+    mEffectiveTransform = idealTransform;
+    ComputeEffectiveTransformsForChildren(gfx3DMatrix());
+    ComputeEffectiveTransformForMaskLayer(gfx3DMatrix());
+    mUseIntermediateSurface = true;
+    return;
+  }
+
+  mEffectiveTransform = SnapTransformTranslation(idealTransform, &residual);
+  // We always pass the ideal matrix down to our children, so there is no
+  // need to apply any compensation using the residual from SnapTransformTranslation.
+  ComputeEffectiveTransformsForChildren(idealTransform);
+
+  ComputeEffectiveTransformForMaskLayer(aTransformToSurface);
+
+  Layer* child = GetFirstChild();
+  bool hasSingleBlendingChild = false;
+  if (!HasMultipleChildren() && child) {
+    hasSingleBlendingChild = child->GetMixBlendMode() != gfxContext::OPERATOR_OVER;
+  }
+
+  /* If we have a single child, it can just inherit our opacity,
+   * otherwise we need a PushGroup and we need to mark ourselves as using
+   * an intermediate surface so our children don't inherit our opacity
+   * via GetEffectiveOpacity.
+   * Having a mask layer always forces our own push group
+   */
+    mUseIntermediateSurface =
+    GetMaskLayer() ||
+	GetForceIsolatedGroup() ||
+    (GetMixBlendMode() != gfxContext::OPERATOR_OVER && HasMultipleChildren()) ||
+    (GetEffectiveOpacity() != 1.0 && (HasMultipleChildren() || hasSingleBlendingChild));
+}
+
 bool
 BasicContainerLayer::ChildrenPartitionVisibleRegion(const nsIntRect& aInRect)
 {
