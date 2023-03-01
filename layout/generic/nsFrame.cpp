@@ -1741,6 +1741,21 @@ WrapPreserve3DList(nsIFrame* aFrame, nsDisplayListBuilder* aBuilder, nsDisplayLi
   return rv;
 }
 
+class AutoSaveRestoreBlendMode
+{
+  nsDisplayListBuilder& mBuilder;
+  bool                  AutoResetContainsBlendMode;
+public:
+  AutoSaveRestoreBlendMode(nsDisplayListBuilder& aBuilder)
+    : mBuilder(aBuilder),
+      AutoResetContainsBlendMode(aBuilder.ContainsBlendMode()) {
+  }
+
+  ~AutoSaveRestoreBlendMode() {
+    mBuilder.SetContainsBlendMode(AutoResetContainsBlendMode);
+  }
+};
+
 void
 nsIFrame::BuildDisplayListForStackingContext(nsDisplayListBuilder* aBuilder,
                                              const nsRect&         aDirtyRect,
@@ -1769,6 +1784,13 @@ nsIFrame::BuildDisplayListForStackingContext(nsDisplayListBuilder* aBuilder,
 
   bool inTransform = aBuilder->IsInTransform();
   bool isTransformed = IsTransformed();
+
+  // reset blend mode so we can keep track if this stacking context needs have
+  // a nsDisplayBlendContainer. Set the blend mode back when the routine exits
+  // so we keep track if the parent stacking context needs a container too.
+  AutoSaveRestoreBlendMode autoRestoreBlendMode(*aBuilder);
+  aBuilder->SetContainsBlendMode(false);
+
   if (isTransformed) {
     if (aBuilder->IsForPainting() &&
         nsDisplayTransform::ShouldPrerenderTransformedContent(aBuilder, this)) {
@@ -1801,11 +1823,12 @@ nsIFrame::BuildDisplayListForStackingContext(nsDisplayListBuilder* aBuilder,
   }
 
   bool useOpacity = HasOpacity() && !nsSVGUtils::CanOptimizeOpacity(this);
+  bool useBlendMode = disp->mMixBlendMode != NS_STYLE_BLEND_NORMAL;
   bool usingSVGEffects = nsSVGIntegrationUtils::UsingEffectsForFrame(this);
 
   DisplayListClipState::AutoSaveRestore clipState(aBuilder);
 
-  if (isTransformed || useOpacity || usingSVGEffects) {
+  if (isTransformed || useOpacity || useBlendMode || usingSVGEffects) {
     // We don't need to pass ancestor clipping down to our children;
     // everything goes inside a display item's child list, and the display
     // item itself will be clipped.
@@ -1946,6 +1969,21 @@ nsIFrame::BuildDisplayListForStackingContext(nsDisplayListBuilder* aBuilder,
       resultList.AppendNewToTop(
         new (aBuilder) nsDisplayTransform(aBuilder, this, &resultList));
     }
+  }
+
+  /* If there's blending, wrap up the list in a blend-mode item. Note
+   * that opacity can be applied before blending as the blend color is
+   * not affected by foreground opacity (only background alpha).
+   */
+
+  if (useBlendMode && !resultList.IsEmpty()) {
+    resultList.AppendNewToTop(
+        new (aBuilder) nsDisplayMixBlendMode(aBuilder, this, &resultList));
+  }
+
+  if (aBuilder->ContainsBlendMode()) {
+      resultList.AppendNewToTop(
+        new (aBuilder) nsDisplayBlendContainer(aBuilder, this, &resultList));
   }
 
   aList->AppendToTop(&resultList);
@@ -2090,6 +2128,7 @@ nsIFrame::BuildDisplayListForChild(nsDisplayListBuilder*   aBuilder,
   const nsStylePosition* pos = child->StylePosition();
   bool isVisuallyAtomic = child->HasOpacity()
     || child->IsTransformed()
+	|| disp->mMixBlendMode != NS_STYLE_BLEND_NORMAL
     // strictly speaking, 'perspective' doesn't require visual atomicity,
     // but the spec says it acts like the rest of these
     || disp->mChildPerspective.GetUnit() == eStyleUnit_Coord
@@ -2145,6 +2184,9 @@ nsIFrame::BuildDisplayListForChild(nsDisplayListBuilder*   aBuilder,
   nsDisplayList list;
   nsDisplayList extraPositionedDescendants;
   if (isStackingContext) {
+	  if (disp->mMixBlendMode != NS_STYLE_BLEND_NORMAL) {
+      aBuilder->SetContainsBlendMode(true);
+    }
     // True stacking context.
     // For stacking contexts, BuildDisplayListForStackingContext handles
     // clipping and MarkAbsoluteFramesForDisplayList.
