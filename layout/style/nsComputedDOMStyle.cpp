@@ -1862,6 +1862,14 @@ nsComputedDOMStyle::DoGetBackgroundInlinePolicy()
 }
 
 CSSValue*
+nsComputedDOMStyle::DoGetBackgroundBlendMode()
+{
+  return GetBackgroundList(&nsStyleBackground::Layer::mBlendMode,
+                           &nsStyleBackground::mBlendModeCount,
+                           nsCSSProps::kBlendModeKTable);
+}
+
+CSSValue*
 nsComputedDOMStyle::DoGetBackgroundOrigin()
 {
   return GetBackgroundList(&nsStyleBackground::Layer::mOrigin,
@@ -4990,6 +4998,7 @@ nsComputedDOMStyle::GetQueryablePropertyMap(uint32_t* aLength)
     COMPUTED_STYLE_MAP_ENTRY(backface_visibility,           BackfaceVisibility),
     //// COMPUTED_STYLE_MAP_ENTRY(background,               Background),
     COMPUTED_STYLE_MAP_ENTRY(background_attachment,         BackgroundAttachment),
+	COMPUTED_STYLE_MAP_ENTRY(background_blend_mode,         BackgroundBlendMode),
     COMPUTED_STYLE_MAP_ENTRY(background_clip,               BackgroundClip),
     COMPUTED_STYLE_MAP_ENTRY(background_color,              BackgroundColor),
     COMPUTED_STYLE_MAP_ENTRY(background_image,              BackgroundImage),
