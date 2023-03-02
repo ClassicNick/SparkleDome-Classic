@@ -141,6 +141,9 @@ public:
 
   NS_IMETHOD ThemeChanged()=0;
 
+  virtual bool WidgetAppearanceDependsOnWindowFocus(uint8_t aWidgetType)
+  { return false; }
+
   /**
    * Can the nsITheme implementation handle this widget?
    */
