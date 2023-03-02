@@ -115,7 +115,7 @@ struct nsBackgroundLayerState {
    * @param aFlags some combination of nsCSSRendering::PAINTBG_* flags
    */
   nsBackgroundLayerState(nsIFrame* aForFrame, const nsStyleImage* aImage, uint32_t aFlags)
-    : mImageRenderer(aForFrame, aImage, aFlags) {}
+    : mImageRenderer(aForFrame, aImage, aFlags), mCompositingOp(gfxContext::OPERATOR_OVER) {}
 
   /**
    * The nsImageRenderer that will be used to draw the background.
@@ -139,6 +139,10 @@ struct nsBackgroundLayerState {
    * PrepareBackgroundLayer.
    */
   nsPoint mAnchor;
+  /**
+   * The compositing operation that the image should use
+   */
+  gfxContext::GraphicsOperator mCompositingOp;
   /**
    * The background-repeat property space keyword computation requires
    * images to be tiled with spacing between the images. The mSpacing width 
